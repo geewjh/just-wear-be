@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+mongoose.set("debug", true);
 mongoose.connect(process.env.DATABASE_URL);
 
 const db = mongoose.connection;
