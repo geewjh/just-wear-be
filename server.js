@@ -19,9 +19,8 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.get("/api", (req, res) => {
-  res.send("Hello World");
-});
+// routes
+app.use("/api/users", require("./routes/api/users"));
 
 const port = process.env.PORT || 3001;
 
