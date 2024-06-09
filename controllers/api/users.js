@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const User = require("../../models/user");
 
 async function create(req, res) {
@@ -11,6 +12,21 @@ async function create(req, res) {
   }
 }
 
+async function login(req, res) {
+  try {
+    const user = await User.findOne({ username: req.body.username });
+    if (!user) return res.sendStatus(404); //page not found
+
+    const isPasswordSame = bcrypt.compare(req.body.password, user.password);
+    if (!isPasswordSame) return res.sendStatus(403); // forbidden
+
+    const token = createJWT(user);
+    res.status(200).json(token);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 function createJWT(user) {
   const token = jwt.sign({ user }, process.env.SECRET, { expiresIn: "2d" });
   return token;
@@ -18,4 +34,5 @@ function createJWT(user) {
 
 module.exports = {
   create,
+  login,
 };
