@@ -24,7 +24,9 @@ const s3Bucket = multerS3({
 });
 
 //Multer Middleware Setup
-const upload = multer({ storage: s3Bucket }).array("file", 4);
+const upload = multer({
+  storage: s3Bucket,
+}).array("images", 4);
 
 //Middleware for Uploading Files to S3
 module.exports = function uploadToS3(req, res, next) {
@@ -38,3 +40,5 @@ module.exports = function uploadToS3(req, res, next) {
 };
 
 // https://vercel.com/templates/next.js/aws-s3-image-upload-nextjs
+// https://www.youtube.com/watch?v=SeYABhj0WXM
+// https://www.youtube.com/watch?v=eQAIojcArRY&t=1236s
