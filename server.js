@@ -23,7 +23,7 @@ app.use(require("./config/checkToken"));
 
 // routes
 app.use("/api/users", require("./routes/api/users"));
-app.use("/api/clothes", require("./routes/api/clothes"));
+app.use("/api/closet", require("./routes/api/closet"));
 
 const port = process.env.PORT || 3001;
 

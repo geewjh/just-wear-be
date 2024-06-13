@@ -16,10 +16,10 @@ const s3Bucket = multerS3({
   s3: s3,
   bucket: process.env.AWS_BUCKET_NAME,
   metadata: function (req, file, cb) {
-    cb(null, { fieldname: file.fieldname });
+    cb(null, { fieldname: file.fieldname, contentType: file.mimetype });
   },
   key: function (req, file, cb) {
-    cb(null, Date.now().toString());
+    cb(null, file.originalname);
   },
 });
 
@@ -30,11 +30,14 @@ const upload = multer({
 
 //Middleware for Uploading Files to S3
 module.exports = function uploadToS3(req, res, next) {
+  console.log("s3 route hit!");
+  console.log("Request files:", req.files);
   upload(req, res, function (err) {
     if (err) {
       console.log(err);
-      return res.status(500).json({ err, message: "Fail to upload" });
+      return res.status(500).json({ error: err.message });
     }
+    console.log("Upload successful:", req.files);
     return next();
   });
 };
