@@ -4,17 +4,14 @@ const AWS_S3_OBJECT_URL = process.env.AWS_S3_OBJECT_URL;
 
 function uploadImg(req, res) {
   const { files } = req;
-  const imgURLs = files.map((img) => {
+  const imageURLs = files.map((img) => {
     return `${AWS_S3_OBJECT_URL}/${img.key}`;
   });
-  console.log("convert image to url:", imgURLs);
-  res.status(201).json({
-    message: "nice, you did it! succesful upload of image to s3",
-    imageURLs: imgURLs,
-  });
+  console.log("converted image url:", imageURLs);
+  res.status(201).json(imageURLs);
 }
 
-async function create(req, res) {
+async function createClothes(req, res) {
   console.log("req.body:", req.body);
   const { name, type, material, images } = req.body;
   const clothesInfo = { name, type, material, images };
@@ -24,16 +21,21 @@ async function create(req, res) {
       ...clothesInfo,
       user: req.user._id,
     });
-    res.status(201).json({
-      status: "success",
-      data: {
-        clothes: newClothesItem,
-      },
-    });
+    res.status(201).json(newClothesItem);
   } catch (err) {
     console.log("Error saving it to db:", err);
     res.status(500).json({ error: err.message });
   }
 }
 
-module.exports = { uploadImg, create };
+async function getAllClothes(req, res) {
+  try {
+    const allClothes = await Closet.find({ user: req.user._id });
+    res.status(201).json(allClothes);
+  } catch (err) {
+    console.log("Error retrieving all clothes of said user from the db:", err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { uploadImg, createClothes, getAllClothes };
