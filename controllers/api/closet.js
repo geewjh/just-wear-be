@@ -22,6 +22,7 @@ async function create(req, res) {
   try {
     const newClothesItem = await Closet.create({
       ...clothesInfo,
+      user: req.user._id,
     });
     res.status(201).json({
       status: "success",
