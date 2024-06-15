@@ -17,7 +17,6 @@ const closetSchema = new Schema(
     },
     usage: {
       type: Number,
-      required: true,
     },
     images: {
       type: String,
