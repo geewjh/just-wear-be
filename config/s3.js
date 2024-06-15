@@ -3,7 +3,7 @@ const multer = require("multer");
 const multerS3 = require("multer-s3");
 
 //AWS S3 Client Setup
-const s3 = new AWS.S3({
+const awsS3 = new AWS.S3({
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -12,8 +12,8 @@ const s3 = new AWS.S3({
 });
 
 //Multer-S3 Storage Engine Configuration
-const s3Bucket = multerS3({
-  s3: s3,
+const awsS3Bucket = multerS3({
+  s3: awsS3,
   bucket: process.env.AWS_BUCKET_NAME,
   metadata: function (req, file, cb) {
     cb(null, { fieldname: file.fieldname, contentType: file.mimetype });
@@ -24,15 +24,15 @@ const s3Bucket = multerS3({
 });
 
 //Multer Middleware Setup
-const upload = multer({
-  storage: s3Bucket,
+const post = multer({
+  storage: awsS3Bucket,
 }).array("images", 4);
 
 //Middleware for Uploading Files to S3
-module.exports = function uploadToS3(req, res, next) {
+module.exports = function postToAwsS3(req, res, next) {
   console.log("s3 route hit!");
   console.log("Request files:", req.files);
-  upload(req, res, function (err) {
+  post(req, res, function (err) {
     if (err) {
       console.log(err);
       return res.status(500).json({ error: err.message });
