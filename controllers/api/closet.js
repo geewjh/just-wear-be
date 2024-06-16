@@ -1,5 +1,4 @@
 const Closet = require("../../models/closet");
-const AWS_S3_OBJECT_URL = process.env.AWS_S3_OBJECT_URL;
 
 module.exports = { postImageToAwsS3, createClothes, getAllClothes };
 
@@ -14,12 +13,17 @@ async function getAllClothes(req, res) {
 }
 
 function postImageToAwsS3(req, res) {
-  const { files } = req;
-  const imageURLs = files.map((image) => {
-    return `${AWS_S3_OBJECT_URL}/${image.key}`;
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ error: "No files uploaded or processed" });
+  }
+
+  const baseURL = process.env.AWS_S3_OBJECT_URL;
+  const s3ImageURLs = req.files.map((file) => {
+    const imageKey = file.alteredImageInfo.key;
+    return `${baseURL}/${imageKey}`;
   });
-  console.log("converted image url:", imageURLs);
-  res.status(201).json(imageURLs);
+
+  res.status(201).json(s3ImageURLs);
 }
 
 async function createClothes(req, res) {

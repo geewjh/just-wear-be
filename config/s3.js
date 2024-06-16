@@ -1,44 +1,68 @@
 const AWS = require("aws-sdk");
 const multer = require("multer");
-const multerS3 = require("multer-s3");
+const sharp = require("sharp");
+const { v4: uuidv4 } = require("uuid");
 
-//AWS S3 Client Setup
-const awsS3 = new AWS.S3({
+// initialize AWS S3 with credentials
+const s3Client = new AWS.S3({
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
   region: process.env.AWS_REGION,
 });
+console.log("Initialized S3 client configuration:", s3Client);
 
-//Multer-S3 Storage Engine Configuration
-const awsS3Bucket = multerS3({
-  s3: awsS3,
-  bucket: process.env.AWS_BUCKET_NAME,
-  metadata: function (req, file, cb) {
-    cb(null, { fieldname: file.fieldname, contentType: file.mimetype });
-  },
-  key: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
-});
+// random unique identifier for the image
+function generateRandomID() {
+  const uuid = uuidv4();
+  const segments = uuid.split("-");
+  const lastSegment = segments[segments.length - 1];
+  return lastSegment;
+}
 
-//Multer Middleware Setup
-const post = multer({
-  storage: awsS3Bucket,
-}).array("images", 4);
+// setup multer for file upload handling
+const multerUpload = multer({ storage: multer.memoryStorage() }).array(
+  "images",
+  5
+);
 
-//Middleware for Uploading Files to S3
-module.exports = function postToAwsS3(req, res, next) {
-  console.log("s3 route hit!");
-  console.log("Request files:", req.files);
-  post(req, res, function (err) {
+module.exports = function postToS3(req, res, next) {
+  multerUpload(req, res, async function (err) {
     if (err) {
-      console.log(err);
+      console.error("Upload error:", err);
+      return res
+        .status(500)
+        .json({ error: "Failed to upload files.", details: err.message });
+    }
+    try {
+      const randomID = generateRandomID();
+      for (const file of req.files) {
+        const alteredImage = await sharp(file.buffer)
+          .resize(250, 250, { fit: sharp.fit.fill })
+          .toFormat("jpeg", { mozjpeg: true, quality: 75 })
+          .toBuffer();
+
+        const fileBaseName = file.originalname.split(".")[0];
+        const newFileName = `${randomID}-${fileBaseName}.jpeg`;
+
+        const uploadParams = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: newFileName,
+          Body: alteredImage,
+          ContentType: "image/jpeg",
+        };
+
+        const uploadResponse = await s3Client.upload(uploadParams).promise();
+        console.log("Image uploaded to S3:", uploadResponse);
+
+        file.alteredImageInfo = { key: newFileName };
+      }
+      next();
+    } catch (err) {
+      console.error("Image alteration error:", err);
       return res.status(500).json({ error: err.message });
     }
-    console.log("Upload successful:", req.files);
-    return next();
   });
 };
 
