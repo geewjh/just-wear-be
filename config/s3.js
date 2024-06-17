@@ -1,33 +1,41 @@
-const AWS = require("aws-sdk");
-const multer = require("multer");
-const sharp = require("sharp");
-const { v4: uuidv4 } = require("uuid");
+module.exports = {
+  postImageToS3,
+  removeImageFromS3,
+};
 
-// initialize AWS S3 with credentials
-const s3Client = new AWS.S3({
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-  region: process.env.AWS_REGION,
-});
-console.log("Initialized S3 client configuration:", s3Client);
+async function removeImageFromS3(req, res, next) {
+  const AWS = require("aws-sdk");
+  const s3Client = new AWS.S3({
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+    region: process.env.AWS_REGION,
+  });
 
-// random unique identifier for the image
-function generateRandomID() {
-  const uuid = uuidv4();
-  const segments = uuid.split("-");
-  const lastSegment = segments[segments.length - 1];
-  return lastSegment;
+  const { objectKey } = req.params;
+  const deleteParams = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: objectKey,
+  };
+
+  try {
+    await s3Client.deleteObject(deleteParams).promise();
+    console.log("Removed from S3 object");
+    next();
+  } catch (err) {
+    console.error("Can't delete from S3:", err);
+    return res.status(500).json({ error: err.message });
+  }
 }
 
-// setup multer for file upload handling
-const multerUpload = multer({ storage: multer.memoryStorage() }).array(
-  "images",
-  5
-);
+async function postImageToS3(req, res, next) {
+  const multer = require("multer");
+  const multerUpload = multer({ storage: multer.memoryStorage() }).array(
+    "images",
+    5
+  );
 
-module.exports = function postToS3(req, res, next) {
   multerUpload(req, res, async function (err) {
     if (err) {
       console.error("Upload error:", err);
@@ -35,8 +43,20 @@ module.exports = function postToS3(req, res, next) {
         .status(500)
         .json({ error: "Failed to upload files.", details: err.message });
     }
+
+    const sharp = require("sharp");
+    const { v4: uuidv4 } = require("uuid");
+    const AWS = require("aws-sdk");
+    const s3Client = new AWS.S3({
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+      region: process.env.AWS_REGION,
+    });
+
     try {
-      const randomID = generateRandomID();
+      const randomID = uuidv4().split("-").pop();
       for (const file of req.files) {
         const alteredImage = await sharp(file.buffer)
           .resize(250, 250, { fit: sharp.fit.fill })
@@ -64,8 +84,4 @@ module.exports = function postToS3(req, res, next) {
       return res.status(500).json({ error: err.message });
     }
   });
-};
-
-// https://vercel.com/templates/next.js/aws-s3-image-upload-nextjs
-// https://www.youtube.com/watch?v=SeYABhj0WXM
-// https://www.youtube.com/watch?v=eQAIojcArRY&t=1236s
+}

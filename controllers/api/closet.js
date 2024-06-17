@@ -1,6 +1,11 @@
 const Closet = require("../../models/closet");
 
-module.exports = { postImageToAwsS3, createClothes, getAllClothes };
+module.exports = {
+  postImageToAwsS3,
+  createClothes,
+  getAllClothes,
+  removeClothes,
+};
 
 async function getAllClothes(req, res) {
   try {
@@ -8,6 +13,19 @@ async function getAllClothes(req, res) {
     res.status(201).json(allClothes);
   } catch (err) {
     console.log("Error retrieving all clothes of said user from the db:", err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function removeClothes(req, res) {
+  try {
+    const removingClothesItem = await Closet.findOneAndDelete({
+      _id: req.params.removingClothesID,
+      user: req.user._id,
+    });
+    res.status(201).json(removingClothesItem);
+  } catch (err) {
+    console.log("Error removing it from db:", err);
     res.status(500).json({ error: err.message });
   }
 }
