@@ -40,11 +40,7 @@ module.exports = function postToS3(req, res, next) {
       for (const file of req.files) {
         const alteredImage = await sharp(file.buffer)
           .resize(250, 250, { fit: sharp.fit.fill })
-<<<<<<< HEAD
-          .toFormat("jpeg", { mozjpeg: true, quality: 75 })
-=======
           .toFormat("jpeg", { mozjpeg: true, quality: 100 })
->>>>>>> 1aa301f (fix: change quality of image)
           .toBuffer();
 
         const fileBaseName = file.originalname.split(".")[0];
