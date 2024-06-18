@@ -5,7 +5,22 @@ module.exports = {
   createClothes,
   getAllClothes,
   removeClothes,
+  incrementUsage,
 };
+
+async function incrementUsage(req, res) {
+  try {
+    const updatedClothesItem = await Closet.findByIdAndUpdate(
+      req.params.clothesID,
+      { $inc: { usage: 1 } },
+      { new: true }
+    );
+    res.status(200).json(updatedClothesItem);
+  } catch (err) {
+    console.error("Error updating usage:", err);
+    res.status(500).json({ error: err.message });
+  }
+}
 
 async function getAllClothes(req, res) {
   try {

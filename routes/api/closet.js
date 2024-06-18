@@ -15,5 +15,6 @@ router.post(
   closetCtrl.postImageToAwsS3
 );
 router.post("/clothes/new", closetCtrl.createClothes);
+router.patch("/increment-usage/:clothesID", closetCtrl.incrementUsage);
 
 module.exports = router;
