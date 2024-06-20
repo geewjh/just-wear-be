@@ -6,7 +6,36 @@ module.exports = {
   getAllClothes,
   removeClothes,
   incrementUsage,
+  updateClothes,
+  getClothesByID,
 };
+
+async function getClothesByID(req, res) {
+  try {
+    const clothesID = req.params.clothesID;
+    const specificClothes = await Closet.findById(clothesID);
+    res.status(200).json(specificClothes);
+  } catch (err) {
+    console.error("Error finding clothes item:", err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function updateClothes(req, res) {
+  try {
+    const clothesID = req.params.clothesID;
+    const updatedClothesData = req.body;
+    const updatedClothes = await Closet.findByIdAndUpdate(
+      clothesID,
+      updatedClothesData,
+      { new: true }
+    );
+    res.status(200).json(updatedClothes);
+  } catch (err) {
+    console.error("Error updating clothes item:", err);
+    res.status(500).json({ error: err.message });
+  }
+}
 
 async function incrementUsage(req, res) {
   try {

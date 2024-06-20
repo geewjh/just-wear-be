@@ -3,6 +3,7 @@ const router = express.Router();
 const closetCtrl = require("../../controllers/api/closet");
 const s3 = require("../../config/s3");
 
+router.get("/get/clothes/:clothesID", closetCtrl.getClothesByID);
 router.get("/get-all", closetCtrl.getAllClothes);
 router.delete(
   "/clothes/delete/:removingClothesID/:objectKey",
@@ -16,5 +17,6 @@ router.post(
 );
 router.post("/clothes/new", closetCtrl.createClothes);
 router.patch("/increment-usage/:clothesID", closetCtrl.incrementUsage);
+router.patch("/update-clothes/:clothesID", closetCtrl.updateClothes);
 
 module.exports = router;
