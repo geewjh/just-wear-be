@@ -7,24 +7,22 @@ async function removeImageFromS3(req, res, next) {
   const AWS = require("aws-sdk");
   const s3Client = new AWS.S3({
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      accessKeyId: process.env.MY_AWS_ID,
+      secretAccessKey: process.env.MY_AWS_SECRET,
     },
-    region: process.env.AWS_REGION,
+    region: process.env.MY_AWS_REGION,
   });
 
   const { objectKey } = req.params;
   const deleteParams = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: process.env.MY_AWS_STORAGE_BUCKET,
     Key: objectKey,
   };
 
   try {
     await s3Client.deleteObject(deleteParams).promise();
-    console.log("Removed from S3 object");
     next();
   } catch (err) {
-    console.error("Can't delete from S3:", err);
     return res.status(500).json({ error: err.message });
   }
 }
@@ -38,7 +36,6 @@ async function postImageToS3(req, res, next) {
 
   multerUpload(req, res, async function (err) {
     if (err) {
-      console.error("Upload error:", err);
       return res
         .status(500)
         .json({ error: "Failed to upload files.", details: err.message });
@@ -49,10 +46,10 @@ async function postImageToS3(req, res, next) {
     const AWS = require("aws-sdk");
     const s3Client = new AWS.S3({
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: process.env.MY_AWS_ID,
+        secretAccessKey: process.env.MY_AWS_SECRET,
       },
-      region: process.env.AWS_REGION,
+      region: process.env.MY_AWS_REGION,
     });
 
     try {
@@ -67,7 +64,7 @@ async function postImageToS3(req, res, next) {
         const newFileName = `${randomID}-${fileBaseName}.jpeg`;
 
         const uploadParams = {
-          Bucket: process.env.AWS_BUCKET_NAME,
+          Bucket: process.env.MY_AWS_STORAGE_BUCKET,
           Key: newFileName,
           Body: alteredImage,
           ContentType: "image/jpeg",
@@ -80,7 +77,6 @@ async function postImageToS3(req, res, next) {
       }
       next();
     } catch (err) {
-      console.error("Image alteration error:", err);
       return res.status(500).json({ error: err.message });
     }
   });

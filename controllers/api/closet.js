@@ -16,7 +16,6 @@ async function getClothesByID(req, res) {
     const specificClothes = await Closet.findById(clothesID);
     res.status(200).json(specificClothes);
   } catch (err) {
-    console.error("Error finding clothes item:", err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -32,7 +31,6 @@ async function updateClothes(req, res) {
     );
     res.status(200).json(updatedClothes);
   } catch (err) {
-    console.error("Error updating clothes item:", err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -46,7 +44,6 @@ async function incrementUsage(req, res) {
     );
     res.status(200).json(updatedClothesItem);
   } catch (err) {
-    console.error("Error updating usage:", err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -54,9 +51,8 @@ async function incrementUsage(req, res) {
 async function getAllClothes(req, res) {
   try {
     const allClothes = await Closet.find({ user: req.user._id });
-    res.status(201).json(allClothes);
+    res.status(200).json(allClothes);
   } catch (err) {
-    console.log("Error retrieving all clothes of said user from the db:", err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -67,9 +63,12 @@ async function removeClothes(req, res) {
       _id: req.params.removingClothesID,
       user: req.user._id,
     });
-    res.status(201).json(removingClothesItem);
+    if (removingClothesItem) {
+      res.status(200).json(removingClothesItem);
+    } else {
+      res.status(404).json({ error: "Clothes item not found" });
+    }
   } catch (err) {
-    console.log("Error removing it from db:", err);
     res.status(500).json({ error: err.message });
   }
 }
@@ -79,7 +78,7 @@ function postImageToAwsS3(req, res) {
     return res.status(400).json({ error: "No files uploaded or processed" });
   }
 
-  const baseURL = process.env.AWS_S3_OBJECT_URL;
+  const baseURL = process.env.MY_AWS_OBJECT_URL;
   const s3ImageURLs = req.files.map((file) => {
     const imageKey = file.alteredImageInfo.key;
     return `${baseURL}/${imageKey}`;
@@ -89,7 +88,6 @@ function postImageToAwsS3(req, res) {
 }
 
 async function createClothes(req, res) {
-  console.log("req.body:", req.body);
   const { type, subType, material, images } = req.body;
   const clothesInfo = { type, subType, material, images };
 
@@ -100,7 +98,6 @@ async function createClothes(req, res) {
     });
     res.status(201).json(newClothesItem);
   } catch (err) {
-    console.log("Error saving it to db:", err);
     res.status(500).json({ error: err.message });
   }
 }
