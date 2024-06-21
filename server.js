@@ -8,13 +8,13 @@ require("./config/database");
 
 const app = express();
 
-// let corsOption = {
-//   origin: ["https://xxx-xxx.vercel.app"],
-// };
+let corsOption = {
+  origin: ["https://main.d2hnmd97ss8ky2.amplifyapp.com"],
+};
 
-// app.use(cors(corsOption));
+app.use(cors(corsOption));
 
-app.use(cors());
+// app.use(cors());
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
