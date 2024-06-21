@@ -31,7 +31,10 @@ async function login(req, res) {
     const user = await User.findOne({ username: req.body.username });
     if (!user) return res.sendStatus(404); //page not found
 
-    const isPasswordSame = bcrypt.compare(req.body.password, user.password);
+    const isPasswordSame = await bcrypt.compare(
+      req.body.password,
+      user.password
+    );
     if (!isPasswordSame) return res.sendStatus(403); // forbidden
 
     const token = createJWT(user);
