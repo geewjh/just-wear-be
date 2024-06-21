@@ -1,11 +1,13 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../../models/user");
+const Closet = require("../../models/closet");
 
 module.exports = {
   create,
   login,
   checkToken,
+  deleteAcc,
 };
 
 function checkToken(req, res) {
@@ -42,4 +44,20 @@ async function login(req, res) {
 function createJWT(user) {
   const token = jwt.sign({ user }, process.env.SECRET, { expiresIn: "2d" });
   return token;
+}
+
+async function deleteAcc(req, res) {
+  try {
+    const deletedCloset = await Closet.deleteMany({
+      user: req.user._id,
+    });
+
+    const deletedUser = await User.findOneAndDelete({
+      _id: req.user._id,
+    });
+
+    res.status(200).json({ deletedCloset, deletedUser });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }
